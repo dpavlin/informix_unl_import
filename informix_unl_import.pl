@@ -2,6 +2,10 @@
 use warnings;
 use strict;
 
+# Import directory full of UML dumps from Informix into SQLite
+#
+# 2011-02-23 Dobrica Pavlinusic <dpavlin@rot13.org>
+
 use Encode;
 use DBI;
 use Data::Dump qw(dump);
