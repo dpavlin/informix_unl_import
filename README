@@ -1,0 +1,11 @@
+Import directory full of UML dumps from Informix into SQLite
+
+http://blog.rot13.org/2011/02/migration_of_informix_unl_dump_files_using_sql.html
+
+
+Usage:
+
+	./informix_unl_import.pl demodb
+
+This will begin import from demodb directory into /dev/shm/demodb.sqlite and
+display progress.
