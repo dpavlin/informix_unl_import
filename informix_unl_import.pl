@@ -47,8 +47,8 @@ foreach my $dump ( glob "$path/*.unl" ) {
 	while( <$fh> ) {
 		s{[\n\r]*$}{};
 		my $line = decode('cp1250',$_);
-		if ( $line =~ m/\\$/ ) {
-			$cont .= $line;
+		if ( $line =~ s/\\$// ) {
+			$cont .= "\n" . $line;
 			next;
 		} elsif ( $cont ) {
 			$line = $cont . $line;
