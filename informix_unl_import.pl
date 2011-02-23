@@ -8,7 +8,12 @@ use Data::Dump qw(dump);
 
 my $debug = $ENV{DEBUG} || 0;
 
-my $dbfile = '/dev/shm/import.sqlite';
+my $path = shift @ARGV || die "usage: $0 dump_directory";
+die "argument must be dump directory" unless -d $path;
+my $name = $path;
+$name =~ s{.*/([^/]+)/?$}{$1};
+
+my $dbfile = "/dev/shm/$name.sqlite"; # store in RAM disk on Linux
 
 warn "# output in $dbfile";
 
@@ -16,7 +21,7 @@ unlink $dbfile if -e $dbfile;
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile","","");
 
-foreach my $sql ( glob "knjiznica/*.sql" ) {
+foreach my $sql ( glob "$path/*.sql" ) {
 	warn "schema file: $sql\n";
 	{
 		local $/ = undef;
@@ -32,12 +37,13 @@ foreach my $sql ( glob "knjiznica/*.sql" ) {
 	}
 }
 
-foreach my $dump ( glob "knjiznica/*.unl" ) {
+foreach my $dump ( glob "$path/*.unl" ) {
 	my $table = $1 if $dump =~ m{/(\w+)\.unl};
-	warn "# $dump\n";
+	print STDERR "# $dump";
 	open(my $fh, '<', $dump);
 	my $cont = '';
 	my ( $delimiter, $cols );
+	my $rows = 0;
 	while( <$fh> ) {
 		s{[\n\r]*$}{};
 		my $line = decode('cp1250',$_);
@@ -59,5 +65,12 @@ foreach my $dump ( glob "knjiznica/*.unl" ) {
 		warn "# $table $cols $delimiter [$line] ",dump(@v) if $debug;
 		$dbh->do( "INSERT INTO $table VALUES ('" . join("','", @v) . "')" )
 		|| die $dbh->errstr;
+
+		$rows++;
+		print STDERR $rows % 1000 == 0 ? $rows : $rows % 100 == 0 ? '.' : '';
 	}
+	print STDERR " [$rows]\n";
 }
+
+warn "created $dbfile ", -s $dbfile, " bytes\n";
+
