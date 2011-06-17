@@ -48,9 +48,13 @@ foreach my $dump ( glob "$path/*.unl" ) {
 	my $cont = '';
 	my ( $delimiter, $cols );
 	my $rows = 0;
-	while( <$fh> ) {
-		s{[\n\r]*$}{};
-		my $line = decode('cp1250',$_);
+	while( my $line = <$fh> ) {
+		$line =~ s{[\n\r]*$}{};
+		while ( $line =~ s/\\$// ) {
+			$line .= <$fh>;
+			$line =~ s{[\n\r]*$}{};
+		}
+		$line = decode('cp1250',$line);
 		if ( $line =~ s/\\$// ) {
 			$cont .= "\n" . $line;
 			next;
@@ -68,7 +72,7 @@ foreach my $dump ( glob "$path/*.unl" ) {
 		my @v = split(/\Q$delimiter\E/,$line,$cols);
 		warn "# $table $cols $delimiter [$line] ",dump(@v) if $debug;
 		$dbh->do( "INSERT INTO $table VALUES ('" . join("','", @v) . "')" )
-		|| die $dbh->errstr;
+		|| die $dbh->errstr, dump(@v);
 
 		$rows++;
 		print STDERR $rows % 1000 == 0 ? $rows : $rows % 100 == 0 ? '.' : '';
