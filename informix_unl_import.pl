@@ -15,7 +15,7 @@ my $debug = $ENV{DEBUG} || 0;
 my $path = shift @ARGV || die "usage: $0 dump_directory";
 die "argument must be dump directory" unless -d $path;
 my $name = $path;
-$name =~ s{.*([^/]+)/?$}{$1};
+$name =~ s{.*?([^/]+)/?$}{$1};
 
 my $dbfile = "/dev/shm/$name.sqlite"; # store in RAM disk on Linux
 
